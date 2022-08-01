@@ -20,21 +20,52 @@ def quizzes():
     conn.close()
     return render_template("quizzes.html", quizzes = quizzes)
 
-@quiz_bp.route('/<quiz_id>', methods = ["GET", "POST"] )
-def flash_cards(quiz_id = None):
+@quiz_bp.route("/design/<quiz_id>", methods=["GET", "POST", "PATCH", "DELETE"])
+def design_quiz(quiz_id = None):
     conn = get_db_connection()
     if request.method == "GET":
         sql = "SELECT * FROM flash_card WHERE quiz_id=?"
         res = conn.execute(sql, (quiz_id, )).fetchall()
-        flash_cards = list(map(lambda flash: {"question" : flash[1], "answer": flash[2]}, res))
+        flash_cards = list(map(lambda flash: {"id" : flash[0], "question" : flash[1], "answer": flash[2]}, res))
         conn.close()
-        return render_template('quiz_cards.html', cards = flash_cards)
-    
+        return render_template('quiz_designer.html', cards = flash_cards)
+
+
     data = request.get_json()
-    question = data["question"]
-    answer = data["answer"]
-    conn.execute( "INSERT INTO flash_card (question, answer, quiz_id) VALUES (?, ?, ?)",
-                    (question, answer, quiz_id) )
+    question = data["question"] if "question" in data else ""
+    answer = data["answer"] if "answer" in data else ""
+
+    if request.method == "POST":
+        flash_card_id = conn.execute( "INSERT INTO flash_card (question, answer, quiz_id) VALUES (?, ?, ?) returning id",
+                        (question, answer, quiz_id) ).fetchone()[0]
+        conn.commit()
+        conn.close()
+        return {"status": "success", "id": flash_card_id}, 200
+    
+    id = data["id"]
+
+    if request.method == "PATCH":
+        conn.execute("""
+            UPDATE flash_card
+            SET question=?,
+                answer=?
+            WHERE id=?
+        """, (question, answer, id))
+        conn.commit()
+        conn.close()
+        return {"status" : "success"}, 200
+    
+    conn.execute("DELETE FROM flash_card WHERE id=?", (id, ))
     conn.commit()
     conn.close()
-    return {"status": "success"}, 200
+    return {"status" : "success"}, 200
+
+@quiz_bp.route('/<quiz_id>', methods = ["GET"] )
+def flash_cards(quiz_id = None):
+    conn = get_db_connection()
+    sql = "SELECT * FROM flash_card WHERE quiz_id=?"
+    res = conn.execute(sql, (quiz_id, )).fetchall()
+    flash_cards = list(map(lambda flash: {"question" : flash[1], "answer": flash[2]}, res))
+    conn.close()
+    return render_template('quiz_cards.html', cards = flash_cards)
+    

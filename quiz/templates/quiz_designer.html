@@ -1,0 +1,170 @@
+{% extends 'index.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-5">
+        <div class="sidebar-item">
+            <div class="fixed-top col-5">
+                <form>
+                    <input class="form-control" placeholder="enter flash card question" name='question' id="question">
+                    <textarea placeholder="enter answer for question" class="form-control" id="answer"></textarea>
+                    <button type="button" class="btn btn primary" id="submit-question">Submit</button>
+                    <button type="button" class="btn btn-danger" id = "delete" >Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-7">
+        <button id="add">Add</button>
+        <div class="content-section">
+            {% for card in cards %}
+            <div class="card">
+                <p class="question">{{ card["question"] }}</p>
+                <p class="answer hidden">{{ card["answer"] }}</p>
+                <p class="id hidden">{{ card["id"] }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+
+    const _question = document.querySelector("#question");
+    const _answer = document.querySelector("#answer");
+
+    function setCardFieldsIntoForm(card){
+        const cardAnswer = card.querySelector(".answer");
+        const cardID = card.querySelector(".id");
+
+        if(cardAnswer){
+            _question.value = [...card.children].reverse().pop().textContent;
+            _answer.value = cardAnswer.textContent;
+        }else{
+            _question.value = "";
+            _answer.value = "";
+        }
+    }
+
+    function addHandleSelect(card){
+        console.log("inhandleselect for=", card)
+        card.addEventListener("click", () =>{
+            const active = document.querySelector(".active");
+
+            if(active){
+                active.classList.remove("active");
+            }
+            card.classList.add("active");
+            setCardFieldsIntoForm(card);
+        })
+    }
+
+    Array.from(document.querySelectorAll(".card")).forEach( card => addHandleSelect(card) );
+
+    const addBtn = document.querySelector("#add");
+
+    addBtn.addEventListener("click", () =>{
+        const flashCard = document.createElement("div");
+        flashCard.setAttribute("class", "card");
+
+        const p = document.createElement("p");
+        p.textContent = "Add Question + Answer for this card";
+
+        flashCard.appendChild(p);
+        document.querySelector(".content-section").appendChild(flashCard);
+
+        addHandleSelect(flashCard);
+
+    });
+
+    document.querySelector("#submit-question").addEventListener("click", () =>{
+        const active = document.querySelector(".active");
+
+        if(active.querySelector(".id")){
+            const id = active.querySelector(".id").textContent;
+
+            axios.patch(window.location.href, 
+                        {question : _question.value, answer: _answer.value, id})
+                 .then(resp => {
+                    //  update ui after a succesful post
+                    active.querySelector(".answer").textContent = _answer.value;
+                    [...active.children].reverse().pop().textContent = _question.value;
+            });
+
+        }else{            
+            axios.post(window.location.href,
+                 {question : _question.value, answer: _answer.value})
+                 .then(resp => {
+    
+                     [...active.children].reverse().pop().textContent = _question.value;
+                     const answer = document.createElement("p");
+                     answer.setAttribute("class", "answer hidden");
+                     answer.textContent = _answer.value;
+    
+                     const id = document.createElement("p");
+                     id.textContent = resp.data.id;
+                     id.setAttribute("class", "id hidden");
+    
+                     active.appendChild(answer);
+                     active.appendChild(id);
+            });
+        }
+    });
+
+    document.querySelector("#delete").addEventListener("click", () =>{
+        const active = document.querySelector(".active")
+
+        const id = active.querySelector(".id");
+        if(!id){
+            return;
+        }
+        axios.delete(window.location.href,
+                {data: 
+                    { id: id.textContent }
+                })
+                .then(resp => {
+                    // delete the active flash card from the flash card list
+                    document.querySelector(".content-section").removeChild(active);
+                    //  set first child as active if exist
+                    const firstChild = [...document.querySelector(".content-section").children].pop()
+                    if(firstChild){
+                        firstChild.classList.add("active");
+                        setCardFieldsIntoForm(firstChild);
+                    }
+                })
+    })
+
+</script>
+{% endblock %}
+
+{% block styles %}
+<style>
+
+.hidden{
+    display: none;
+}
+.active > p{
+    border-bottom: 5px solid blue;
+}
+.card > p:hover{
+    cursor: pointer;
+}
+.card {
+  margin-top: 1em;
+  padding: 2em 4em;
+  width: 80%;
+  min-height: 40%;
+  background-color: white;
+  display: grid;
+  justify-content: center;
+  align-items: center;
+  font-size: x-large;
+  color: #00000080;
+  box-shadow: 0 5px 10px 0 #00000040, 0 15px 20px 0#00000020;
+  background-image: url("https://as1.ftcdn.net/v2/jpg/00/01/16/34/1000_F_1163497_Ph1bhIWlzaB3VN74etUDxgHVkTiI2d.jpg");
+  background-position: center;
+}
+</style>
+{% endblock %} 
