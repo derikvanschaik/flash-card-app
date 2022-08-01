@@ -1,12 +1,130 @@
 {% extends 'index.html' %}
 {% block content %}
-<button>Create</button>
-<ul>
-    {% for card in cards %}
-    <li>
-        <h1>{{card['question']}}</h1>
-        <p>{{card['answer']}}</p>
-    </li>
-    {% endfor %} 
-</ul>
-{% endblock %} 
+{% if cards %} 
+<div class="row d-flex flex-column justify-content-center align-items-center">
+    <div class="stack">
+        {% for card in cards %}
+        <div class="card">
+            <p>{{ card["question"] }}</p>
+            <p class="answer hidden">{{ card["answer"] }}</p>
+        </div>
+        {% endfor %} 
+    </div>
+    <button id="show" class="btn btn-primary">Toggle Answer</button>
+</div>
+{% else %}
+<div class="alert alert-warning text-center">You don't have any flash cards for this quiz.</div>
+{% endif %}
+
+{% endblock %}
+<!-- javascript -->
+{% block script %}
+<script>
+    document.querySelector("#show").addEventListener("click", function(){
+        let card = document.querySelector(".card:last-child");
+        card.querySelector(".answer").classList.toggle("hidden");
+    });
+    // put stack to back effect
+    const stack = document.querySelector(".stack");
+    [...stack.children].reverse().forEach(i => stack.append(i));
+    
+    stack.addEventListener("click", swap);
+    
+    function swap(e) {
+      let card = document.querySelector(".card:last-child");
+      let answer = card.querySelector(".answer");
+      if(!Array.from(answer.classList).includes("hidden")){
+          answer.classList.add("hidden");
+      }
+      card.style.animation = "swap 700ms forwards";
+    
+      setTimeout(() => {
+        card.style.animation = "";
+        stack.prepend(card);
+      }, 700);
+    }
+</script>
+{% endblock %}
+
+<!-- css -->
+{% block styles %}
+<style>
+
+/* this css is responsible for the stack effect  */
+    *,
+*:before,
+*:after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.stack {
+  width: 100%;
+  height: 80vh;
+  position: relative;
+}
+
+.card {
+  padding: 2em 4em;
+  width: 80%;
+  min-height: 40%;
+  background-color: white;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  justify-content: center;
+  align-items: center;
+  font-family: sans-serif;
+  font-size: x-large;
+  color: #00000080;
+  box-shadow: 0 5px 10px 0 #00000040, 0 15px 20px 0#00000020;
+  transition: transform 200ms;
+  background-image: url("https://as1.ftcdn.net/v2/jpg/00/01/16/34/1000_F_1163497_Ph1bhIWlzaB3VN74etUDxgHVkTiI2d.jpg");
+  background-position: center;
+}
+
+.card:nth-last-child(n + 4) {
+  --y: calc(-50% + -30px);
+  transform: translate(-50%, var(--y)) scale(0.9);
+  box-shadow: 0 0 1px 1px #00000003;
+}
+.card:nth-last-child(3) {
+  --y: calc(-50% + -15px);
+  transform: translate(-50%, var(--y)) scale(0.95);
+}
+.card:nth-last-child(2) {
+  --y: calc(-50%);
+  transform: translate(-50%, var(--y)) scale(1);
+}
+.card:nth-last-child(1) {
+  --y: calc(-50% + 15px);
+  transform: translate(-50%, var(--y)) scale(1.05);
+}
+
+@keyframes swap {
+  50% {
+    transform: translate(-50%, calc(var(--y) -500px)) scale(0.85) rotate(-5deg);
+    animation-timing-function: ease-in;
+  }
+  100% {
+    transform: translate(-50%, calc(var(--y) - 15px)) scale(0.85);
+    z-index: -1;
+  }
+}
+.content{
+    height: 300px;
+    overflow-y: scroll;
+}
+.hidden{
+    display: none;
+}
+.answer{
+    max-height: 150px;
+    overflow-y: scroll;
+}
+
+</style>
+{% endblock %}

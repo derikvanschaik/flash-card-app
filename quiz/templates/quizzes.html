@@ -1,12 +1,36 @@
 {% extends 'index.html' %}
 {% block content %}
-{% include 'create_quiz.html' %}
-<ul>
-    {% for quiz in quizzes %}
-        <li>
-            <h1>{{quiz['title']}}</h1>
-            <a href="/{{quiz['id']}}">Go</a>
-        </li>
-    {% endfor %}
-</ul>
+<div class="row">
+    <div class="col-5">
+        <div class="sidebar-item">
+            <div class="fixed-top col-5">
+                {% include 'create_quiz.html' %}
+            </div>
+        </div>
+    </div>
+    <div class="col-7">
+
+        <div class="content-section">
+            <ul class="list-group">
+                {% for quiz in quizzes %}
+                    <li class="card">
+                        <a href="/{{quiz['id']}}" class="h6">{{quiz['title']}}</p>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
 {% endblock %}
+{% block styles %}
+<style>
+    /* Style the counter cards */
+    .card {
+      box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+      padding: 16px;
+      text-align: center;
+      background-color: #f1f1f1;
+    }
+
+</style>
+{% endblock %} 

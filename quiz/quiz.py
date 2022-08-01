@@ -1,5 +1,5 @@
 from re import template
-from flask import Blueprint, flash, request, render_template
+from flask import Blueprint, request, render_template
 import sqlite3
 
 quiz_bp = Blueprint('quiz', __name__, template_folder='templates')
@@ -13,11 +13,8 @@ def get_db_connection():
 def quizzes():
     conn = get_db_connection()
     if request.method == "POST":
-        title = 'Untitled'
-        if 'title' in request.form:
-            title = request.form['title']
-            conn.execute("INSERT INTO quiz (title) VALUES (?)", (title, ))
-            conn.commit()
+        conn.execute("INSERT INTO quiz (title) VALUES (?)", ('Untitled' if request.form['title'] == '' else request.form['title'], ))
+        conn.commit()
 
     quizzes = list( conn.execute("SELECT * FROM quiz").fetchall() )
     conn.close()
