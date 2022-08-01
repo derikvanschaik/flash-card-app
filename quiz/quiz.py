@@ -28,7 +28,7 @@ def design_quiz(quiz_id = None):
         res = conn.execute(sql, (quiz_id, )).fetchall()
         flash_cards = list(map(lambda flash: {"id" : flash[0], "question" : flash[1], "answer": flash[2]}, res))
         conn.close()
-        return render_template('quiz_designer.html', cards = flash_cards)
+        return render_template('quiz_designer.html', cards = flash_cards, quiz_id = quiz_id)
 
 
     data = request.get_json()
@@ -67,5 +67,5 @@ def flash_cards(quiz_id = None):
     res = conn.execute(sql, (quiz_id, )).fetchall()
     flash_cards = list(map(lambda flash: {"question" : flash[1], "answer": flash[2]}, res))
     conn.close()
-    return render_template('quiz_cards.html', cards = flash_cards)
+    return render_template('quiz_cards.html', cards = flash_cards, quiz_id = quiz_id)
     
