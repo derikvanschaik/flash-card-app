@@ -1,0 +1,12 @@
+{% extends 'index.html' %}
+{% block content %}
+<button>Create</button>
+<ul>
+    {% for card in cards %}
+    <li>
+        <h1>{{card['question']}}</h1>
+        <p>{{card['answer']}}</p>
+    </li>
+    {% endfor %} 
+</ul>
+{% endblock %} 

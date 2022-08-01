@@ -1,0 +1,12 @@
+{% extends 'index.html' %}
+{% block content %}
+{% include 'create_quiz.html' %}
+<ul>
+    {% for quiz in quizzes %}
+        <li>
+            <h1>{{quiz['title']}}</h1>
+            <a href="/{{quiz['id']}}">Go</a>
+        </li>
+    {% endfor %}
+</ul>
+{% endblock %}

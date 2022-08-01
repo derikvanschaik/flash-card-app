@@ -1,20 +1,27 @@
-from flask import Blueprint, request
+from re import template
+from flask import Blueprint, flash, request, render_template
 import sqlite3
 
-quiz_bp = Blueprint('quiz', __name__)
+quiz_bp = Blueprint('quiz', __name__, template_folder='templates')
 
 def get_db_connection():
     conn = sqlite3.connect('database.db')
     conn.row_factory = sqlite3.Row
     return conn
 
-@quiz_bp.route('/')
+@quiz_bp.route('/', methods=["GET", "POST"])
 def quizzes():
     conn = get_db_connection()
-    quizzes = list( map(lambda quiz: {"quiz_id": quiz[0], "quiz_title": quiz[1]},
-                        conn.execute("SELECT * FROM quiz").fetchall()) )
+    if request.method == "POST":
+        title = 'Untitled'
+        if 'title' in request.form:
+            title = request.form['title']
+            conn.execute("INSERT INTO quiz (title) VALUES (?)", (title, ))
+            conn.commit()
+
+    quizzes = list( conn.execute("SELECT * FROM quiz").fetchall() )
     conn.close()
-    return {"quizzes" : quizzes}, 200
+    return render_template("quizzes.html", quizzes = quizzes)
 
 @quiz_bp.route('/<quiz_id>', methods = ["GET", "POST"] )
 def flash_cards(quiz_id = None):
@@ -24,7 +31,7 @@ def flash_cards(quiz_id = None):
         res = conn.execute(sql, (quiz_id, )).fetchall()
         flash_cards = list(map(lambda flash: {"question" : flash[1], "answer": flash[2]}, res))
         conn.close()
-        return {"flash_cards" : flash_cards}, 200
+        return render_template('quiz_cards.html', cards = flash_cards)
     
     data = request.get_json()
     question = data["question"]
