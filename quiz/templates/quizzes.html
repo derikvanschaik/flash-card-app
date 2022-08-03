@@ -1,27 +1,19 @@
-{% extends 'index.html' %}
-{% block content %}
-<div class="row">
-    <div class="col-5">
-        <div class="sidebar-item">
-            <div class="fixed-top col-5">
-                {% include 'create_quiz.html' %}
-            </div>
-        </div>
-    </div>
-    <div class="col-7">
+{% extends 'layouts/side_scroll.html' %}
 
-        <div class="content-section">
-            <ul class="list-group">
-                {% for quiz in quizzes %}
-                    <li class="card">
-                        <a href="/{{quiz['id']}}" class="h6">{{quiz['title']}}</p>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
-    </div>
-</div>
+{% block fixedSection %}
+    {% include 'create_quiz.html' %}
 {% endblock %}
+
+{% block scrollSection %} 
+    <ul class="list-group">
+        {% for quiz in quizzes %}
+            <li class="card">
+                <a href="/{{quiz['id']}}" class="h6">{{quiz['title']}}</p>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}
+
 {% block styles %}
 <style>
     /* Style the counter cards */

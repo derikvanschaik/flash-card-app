@@ -1,0 +1,20 @@
+{% extends 'index.html' %}
+{% block content %}
+<div class="row">
+    <div class="col-5">
+        <div class="sidebar-item">
+            <div class="fixed-top col-5">
+                {% block fixedSection %}
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+    <div class="col-7">
+
+        <div class="content-section">
+            {% block scrollSection %} 
+            {% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}

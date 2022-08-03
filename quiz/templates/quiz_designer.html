@@ -1,33 +1,24 @@
-{% extends 'index.html' %}
+{% extends 'layouts/side_scroll.html' %}
 
-{% block content %}
-<div class="row">
-    <div class="col-5">
-        <div class="sidebar-item">
-            <div class="fixed-top col-5">
-                <form>
-                    <input class="form-control" placeholder="enter flash card question" name='question' id="question">
-                    <textarea placeholder="enter answer for question" class="form-control" id="answer"></textarea>
-                    <button type="button" class="btn btn primary" id="submit-question">Submit</button>
-                    <button type="button" class="btn btn-danger" id = "delete" >Delete</button>
-                </form>
-                <a href="/{{quiz_id}}" class="btn btn-primary">Go to Quiz</a>
-            </div>
-        </div>
+{% block fixedSection %}
+    <form>
+        <input class="form-control" placeholder="enter flash card question" name='question' id="question">
+        <textarea placeholder="enter answer for question" class="form-control" id="answer"></textarea>
+        <button type="button" class="btn btn primary" id="submit-question">Submit</button>
+        <button type="button" class="btn btn-danger" id = "delete" >Delete</button>
+    </form>
+    <a href="/{{quiz_id}}" class="btn btn-primary">Go to Quiz</a>
+{% endblock %}
+
+{% block scrollSection %}
+    <button id="add" class="btn btn-primary">Add New Flash Card</button>
+    {% for card in cards %}
+    <div class="card">
+        <p class="question">{{ card["question"] }}</p>
+        <p class="answer hidden">{{ card["answer"] }}</p>
+        <p class="id hidden">{{ card["id"] }}</p>
     </div>
-    <div class="col-7">
-        <button id="add">Add</button>
-        <div class="content-section">
-            {% for card in cards %}
-            <div class="card">
-                <p class="question">{{ card["question"] }}</p>
-                <p class="answer hidden">{{ card["answer"] }}</p>
-                <p class="id hidden">{{ card["id"] }}</p>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-</div>
+    {% endfor %}
 {% endblock %}
 
 {% block script %}
