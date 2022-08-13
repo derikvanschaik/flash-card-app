@@ -65,7 +65,7 @@ def flash_cards(quiz_id = None):
     conn = get_db_connection()
     sql = "SELECT * FROM flash_card WHERE quiz_id=?"
     res = conn.execute(sql, (quiz_id, )).fetchall()
-    flash_cards = list(map(lambda flash: {"question" : flash[1], "answer": flash[2]}, res))
+    flash_cards = list(map(lambda flash: {"id": flash[0], "question" : flash[1], "answer": flash[2]}, res))
     conn.close()
     return render_template('quiz_cards.html', cards = flash_cards, quiz_id = quiz_id)
     

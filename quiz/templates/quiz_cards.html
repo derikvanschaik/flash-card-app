@@ -1,7 +1,24 @@
 {% extends 'index.html' %}
 {% block content %}
-{% if cards %} 
-<div class="row d-flex flex-column justify-content-center align-items-center">
+{% if cards %}
+<div class="row">
+  <div class="col-2 d-flex flex-column scroll-container">
+        {% for card in cards %}
+          {% if loop.first %}
+            <div class="side-card d-flex justify-content-between align-items-center list-group-item active" >
+              <p>{{card["question"]}}</p>
+              <span class="close">&times;</span>
+            </div>
+          {% else %}
+            <div class="side-card d-flex justify-content-between align-items-center list-group-item" >
+              <p>{{card["question"]}}</p>
+              <span class="close">&times;</span>
+            </div>
+          {% endif %}
+        {% endfor %}
+      </ul>
+  </div>
+  <div class="col-10">
     <div class="stack">
         {% for card in cards %}
         <div class="card">
@@ -11,6 +28,8 @@
         {% endfor %} 
     </div>
     <button id="show" class="btn btn-primary">Toggle Answer</button>
+  </div>
+  </div>
 </div>
 {% else %}
 <div class="alert alert-warning text-center">You don't have any flash cards for this quiz.</div>
@@ -21,23 +40,71 @@
 <!-- javascript -->
 {% block script %}
 <script>
+    // toggles answer
     document.querySelector("#show").addEventListener("click", function(){
         let card = document.querySelector(".card:last-child");
         card.querySelector(".answer").classList.toggle("hidden");
     });
-    // put stack to back effect
     const stack = document.querySelector(".stack");
+    const sideCards = Array.from( document.querySelectorAll(".side-card") );
+    const sideCardToStackCardMapper = new WeakMap();
+    const stackCardToSideCardMapper = new WeakMap();
+    
+    // build mappers 
+    [...stack.children].forEach((card, idx) => {
+      sideCardToStackCardMapper.set( sideCards[idx], card);
+      stackCardToSideCardMapper.set(card, sideCards[idx]);
+    });
+
+    function smoothScroll(element){
+      element.scrollIntoView({behavior: "smooth", block: "end", inline: "nearest"});
+    }
+
+    function closeSideCardHandler(card, e){
+      // delete card from stack
+      stack.removeChild(sideCardToStackCardMapper.get(card));
+      // remove side card 
+      card.classList.remove("active");
+      card.parentElement.removeChild(card);
+      if(!document.querySelector(".active")){
+        // side cards are left 
+        if(document.querySelector(".side-card")){
+          const curStackCard = document.querySelector(".card:last-child");
+          const sideCard = stackCardToSideCardMapper.get(curStackCard)
+          sideCard.classList.add("active");
+          smoothScroll(sideCard);
+        }
+      }
+      e.stopPropagation();
+    }
+
+    sideCards.forEach(card =>{
+      // close handler 
+      card.querySelector(".close").addEventListener("click", (e) => closeSideCardHandler(card, e));
+    });
+
     [...stack.children].reverse().forEach(i => stack.append(i));
     
     stack.addEventListener("click", swap);
     
     function swap(e) {
       let card = document.querySelector(".card:last-child");
+
+      // if answer is open and toggled we want to hide it
       let answer = card.querySelector(".answer");
       if(!Array.from(answer.classList).includes("hidden")){
           answer.classList.add("hidden");
       }
-      card.style.animation = "swap 700ms forwards";
+      card.style.animation = "swap 700ms backwards";
+      
+      const lastSideCard = stackCardToSideCardMapper.get(card);
+      lastSideCard.classList.remove("active");
+
+      const idx = Array.from(document.querySelectorAll(".side-card")).indexOf(lastSideCard);
+      const length = Array.from(document.querySelectorAll(".side-card")).length;
+      const curSideCard = Array.from(document.querySelectorAll(".side-card"))[ (idx + 1) % length];
+      curSideCard.classList.add("active");
+      smoothScroll(curSideCard);
     
       setTimeout(() => {
         card.style.animation = "";
@@ -68,7 +135,7 @@
 
 .card {
   padding: 2em 4em;
-  width: 80%;
+  width: 50%;
   min-height: 40%;
   background-color: white;
   position: absolute;
@@ -115,6 +182,16 @@
     z-index: -1;
   }
 }
+@keyframes delete {
+  from {
+    animation-timing-function: ease-in;
+    left: 50%;
+  }
+  to {
+    left: 200%;
+    top: -100%;
+  }
+}
 .content{
     height: 300px;
     overflow-y: scroll;
@@ -125,6 +202,29 @@
 .answer{
     max-height: 150px;
     overflow-y: scroll;
+}
+.container{
+  padding: 0 0;
+  margin: 0 0;
+}
+.row{
+  padding: 0 0;
+  margin: 0 0;
+  width: 100vw;
+}
+.scroll-container{
+  margin-top: 4em;
+  max-height: 80vh;
+  overflow-y: scroll;
+}
+.side-card{
+  padding: 2em 1em;
+}
+.close-btn{
+  font-size: x-large;
+}
+.card-id{
+  display: none;
 }
 
 </style>
